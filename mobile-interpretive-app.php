@@ -9,7 +9,7 @@ Author URI:  http://deeptiboddapati.com
 Text Domain: db
 */
 
-require 'number-bridge.php';
+require 'qr-code-bridge.php';
 
 add_filter( 'wp_insert_post_data', 'db_remove_html', 100, 2 );
 /*
