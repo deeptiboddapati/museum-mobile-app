@@ -167,3 +167,17 @@ function db_set_bridge_value( $ID, $post ) {
 
 add_action( 'auto-draft_exhibit_item', 'db_set_bridge_value', 10, 2 );
 
+function db_output_bridge_value( $post){
+	if( $post->post_type === 'exhibit_item' ){
+		global $wpdb;
+	    $table_name = $wpdb->prefix . 'db_bridge';
+	    $bridge = $wpdb->get_results( "SELECT bridge FROM {$table_name} WHERE post_id = {$post->ID}" );
+	    $bridge = $bridge[0]->bridge;
+	    error_log( print_r( $bridge, true));
+	
+		echo "<h3> Bridge ID - " . $bridge . "</h3>";
+	}
+}
+
+add_action( 'edit_form_after_title', 'db_output_bridge_value', 10, 1 );
+
