@@ -37,7 +37,6 @@ function db_output_bridge_value( $post){
 	if( $post->post_type === 'exhibit_item' ){
 		$qr_code_id = get_post_meta( $post->ID, '_QR_CODE', true );
 		$qr_src = wp_get_attachment_image_src( $qr_code_id );
-		error_log( print_r( $qr_src, true ));
 		echo "<img src = '" . $qr_src[0] . "' >";
 	}
 }
@@ -46,7 +45,6 @@ add_action( 'submitpost_box', 'db_output_bridge_value', 10, 1 );
 
 function db_create_qr_code( $ID, $post){
 	if( $post->post_type === 'exhibit_item' && !get_post_meta( $post->ID, '_QR_CODE', true ) ){
-		error_log( print_r( $post, true));
 		global $wpdb;
 	    $table_name = $wpdb->prefix . 'db_bridge';
 	    $bridge = $wpdb->get_results( "SELECT bridge FROM {$table_name} WHERE post_id = {$post->ID}" );
@@ -72,7 +70,6 @@ function db_create_qr_code( $ID, $post){
 		$media = get_attached_media( 'image' );
 		$qr_attachment = array_pop( $media );
 		add_post_meta( $post->ID, '_QR_CODE', $qr_attachment->ID, true );
-		error_log( print_r( $media, true));
 	}
 }
 

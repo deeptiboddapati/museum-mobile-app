@@ -11,7 +11,7 @@ Text Domain: db
 
 require 'qr-code-bridge.php';
 
-add_filter( 'wp_insert_post_data', 'db_remove_html', 100, 2 );
+// add_filter( 'wp_insert_exhibit_item_data', 'db_remove_html', 100, 2 );
 /*
 Description: Removes html from a string and returns the modified string.
 
@@ -19,11 +19,19 @@ Description: Removes html from a string and returns the modified string.
 
  */
 
-function db_remove_html( $data , $postarr ) {
-	$data['post_content'] = strip_tags( $data['post_content'] );
-	return $data;
+// function db_remove_html( $post_id, $post ) {
+// 	$post->post_content = strip_tags( $post->post_content );
+// 	remove_action( 'save_post_exhibit_item', 'db_remove_html', 10, 2 );
+// 	wp_update_post( $post);
+// 	error_log( print_r( $post, true));
+// 	add_action( 'save_post_exhibit_item', 'db_remove_html', 10, 2 );
+// }
+function db_remove_html( $content ) {
+	$content = strip_tags( $content );
+	return $content;
 }
-
+add_filter( 'the_content', 'db_remove_html', 10, 1 );
+// add_action( 'save_post_exhibit_item', 'db_remove_html', 10, 2 );
 
 if ( ! function_exists( 'db_register_tours_taxonomy' ) ) {
 
@@ -133,3 +141,55 @@ add_action( 'init', 'db_add_exhibit_item_post_type', 0 );
 
 }
 
+add_action( 'cmb2_init', 'db_add_exhibit_item_metabox' );
+function db_add_exhibit_item_metabox() {
+
+	$prefix = '_db_';
+
+	$cmb = new_cmb2_box( array(
+		'id'           => $prefix . 'exhibit_item_meta_data',
+		'title'        => __( 'Exhibit Item Meta Data', 'db' ),
+		'object_types' => array( 'exhibit_item' ),
+		'context'      => 'normal',
+		'priority'     => 'default',
+		'show_in_rest' => 'true',
+	) );
+
+	$cmb->add_field( array(
+		'name' => __( 'Geography', 'db' ),
+		'id' => $prefix . 'geography',
+		'type' => 'text',
+	) );
+
+	$cmb->add_field( array(
+		'name' => __( 'Historical Period', 'db' ),
+		'id' => $prefix . 'historical_period',
+		'type' => 'text',
+	) );
+
+}
+
+
+
+add_action( 'cmb2_init', 'db_add_term_meta' );
+function db_add_term_meta() {
+
+	$prefix = '_db_';
+
+	$cmb = new_cmb2_box( array(
+		'id'           => $prefix . 'tour_meta',
+		'title'        => __( 'Tour Data', 'db' ),
+		'object_types' => array( 'term' ),
+		'context'      => 'normal',
+		'priority'     => 'default',
+		'taxonomies' => array( 'tour' ),
+		'show_in_rest' => 'true',
+	) );
+
+	$cmb->add_field( array(
+		'name' => __( 'Tour Image', 'db' ),
+		'id' => $prefix . 'tour_image',
+		'type' => 'file',
+	) );
+
+}
