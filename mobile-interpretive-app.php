@@ -8,30 +8,33 @@ Author: Deepti Boddapati
 Author URI:  http://deeptiboddapati.com
 Text Domain: db
 */
+function db_register_custom_table_for_bridge() {
+     global $wpdb;
+     $table_name = $wpdb->prefix . 'db_bridge';
+     $wpdb_collate = $wpdb->collate;
+     $sql =
+         "CREATE TABLE {$table_name} (
+         bridge mediumint(8) unsigned NOT NULL auto_increment ,
+         post_id mediumint(8) unsigned NOT NULL,
+         PRIMARY KEY  (bridge),
+         UNIQUE KEY post_id (post_id)
+         )
+         COLLATE {$wpdb_collate}";
+ 
+     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+     dbDelta( $sql );
+ }
 
+register_activation_hook( __FILE__, 'db_register_custom_table_for_bridge' );
 require 'qr-code-bridge.php';
 
-// add_filter( 'wp_insert_exhibit_item_data', 'db_remove_html', 100, 2 );
-/*
-Description: Removes html from a string and returns the modified string.
 
-@param: $content - string
-
- */
-
-// function db_remove_html( $post_id, $post ) {
-// 	$post->post_content = strip_tags( $post->post_content );
-// 	remove_action( 'save_post_exhibit_item', 'db_remove_html', 10, 2 );
-// 	wp_update_post( $post);
-// 	error_log( print_r( $post, true));
-// 	add_action( 'save_post_exhibit_item', 'db_remove_html', 10, 2 );
-// }
+//Make a different end point for this and out put the scrubbed text there.
 function db_remove_html( $content ) {
 	$content = strip_tags( $content );
 	return $content;
 }
 add_filter( 'the_content', 'db_remove_html', 10, 1 );
-// add_action( 'save_post_exhibit_item', 'db_remove_html', 10, 2 );
 
 if ( ! function_exists( 'db_register_tours_taxonomy' ) ) {
 

@@ -1,24 +1,4 @@
 <?php 
-
-function db_register_custom_table_for_bridge() {
-     global $wpdb;
-     $table_name = $wpdb->prefix . 'db_bridge';
-     $wpdb_collate = $wpdb->collate;
-     $sql =
-         "CREATE TABLE {$table_name} (
-         bridge mediumint(8) unsigned NOT NULL auto_increment ,
-         post_id mediumint(8) unsigned NOT NULL,
-         PRIMARY KEY  (bridge),
-         UNIQUE KEY post_id (post_id)
-         )
-         COLLATE {$wpdb_collate}";
- 
-     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-     dbDelta( $sql );
- }
-
-register_activation_hook( __FILE__, 'db_register_custom_table_for_bridge' );
-
 function db_set_bridge_value( $ID, $post ) {
 	global $wpdb;
     $table_name = $wpdb->prefix . 'db_bridge';
@@ -44,6 +24,9 @@ function db_output_bridge_value( $post){
 add_action( 'submitpost_box', 'db_output_bridge_value', 10, 1 );
 
 function db_create_qr_code( $ID, $post){
+	require_once(ABSPATH . 'wp-admin/includes/media.php');
+	require_once(ABSPATH . 'wp-admin/includes/file.php');
+	require_once(ABSPATH . 'wp-admin/includes/image.php');
 	if( $post->post_type === 'exhibit_item' && !get_post_meta( $post->ID, '_QR_CODE', true ) ){
 		global $wpdb;
 	    $table_name = $wpdb->prefix . 'db_bridge';
@@ -54,7 +37,7 @@ function db_create_qr_code( $ID, $post){
 			'size' => '150x150',
 			'data' => $bridge,
 			);
-
+		//save a temp version
 		$url = "https://api.qrserver.com/v1/create-qr-code/?";
 		$url = $url . http_build_query( $parameters);
 		$response = wp_remote_get( $url );
@@ -65,20 +48,19 @@ function db_create_qr_code( $ID, $post){
 		$success = fwrite( $handle, $img );
 		fclose( $handle ); 
 		$image_url = plugin_dir_url(  __FILE__ ) . $temp_file_name;
-		$image = media_sideload_image( $image_url, $post->ID,'desc', 'src' );
+
+		//move the file to attachments
+		$image_id = media_sideload_image( $image_url, $post->ID,'desc', 'src','id' );
+		//delete the temp file
 		unlink( plugin_dir_path( __FILE__ ) . $temp_file_name );
-		$media = get_attached_media( 'image' );
-		$qr_attachment = array_pop( $media );
-		add_post_meta( $post->ID, '_QR_CODE', $qr_attachment->ID, true );
+		//save image id to post meta.
+		//and add an endpoint that outputs this!
+		if( $image_id ){
+			add_post_meta( $post->ID, '_QR_CODE', $image, true );
+		}
 	}
 }
 
 
 add_action( 'publish_exhibit_item', 'db_create_qr_code', 10, 2 );
-
-
-
-
-
-
 ?>
